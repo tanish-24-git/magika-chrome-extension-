@@ -1,0 +1,19 @@
+{
+  "name": "magika-chrome-extension",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Chrome extension that scans downloads locally using Google's Magika AI",
+  "scripts": {
+    "build": "node build.js",
+    "dev": "node build.js --watch",
+    "clean": "node -e \"const fs=require('fs');if(fs.existsSync('dist')){fs.rmSync('dist',{recursive:true})}\"",
+    "prebuild": "npm run clean"
+  },
+  "dependencies": {
+    "magika": "^1.0.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.0"
+  }
+}

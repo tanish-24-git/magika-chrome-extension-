@@ -1,0 +1,301 @@
+/* ============================================================
+   Magika File Scanner — Retro / Vintage Theme
+   Inspired by terminal UIs, gitingest, and pixel aesthetics.
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+
+/* ---- Reset ---- */
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* ---- Root tokens ---- */
+:root {
+  --bg:          #F5F0E8;
+  --bg-alt:      #EDE8DC;
+  --fg:          #1A1A1A;
+  --fg-dim:      #6B6358;
+  --border:      #1A1A1A;
+  --accent:      #8B4513;
+  --safe:        #2D5F2D;
+  --safe-bg:     #D5E8D0;
+  --warn:        #8B6914;
+  --warn-bg:     #F5E6B8;
+  --danger:      #B91C1C;
+  --danger-bg:   #F8D0D0;
+  --error:       #7C3AED;
+  --font-mono:   'IBM Plex Mono', 'Courier New', monospace;
+  --font-title:  'Space Mono', 'Courier New', monospace;
+  --radius:      3px;
+  --border-w:    2px;
+}
+
+/* ---- Body ---- */
+body {
+  width: 400px;
+  min-height: 300px;
+  max-height: 560px;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---- Container ---- */
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  border: var(--border-w) solid var(--border);
+}
+
+/* ---- Header ---- */
+.header {
+  padding: 12px 14px 8px;
+  border-bottom: var(--border-w) solid var(--border);
+  background: var(--bg-alt);
+}
+.header-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.logo {
+  font-family: var(--font-title);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: -1px;
+}
+.header h1 {
+  font-family: var(--font-title);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+.subtitle {
+  font-size: 10px;
+  color: var(--fg-dim);
+  letter-spacing: 1.5px;
+  margin-top: 2px;
+  padding-left: 32px;
+}
+
+/* ---- Stats bar ---- */
+.stats-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 14px;
+  border-bottom: var(--border-w) solid var(--border);
+  background: var(--bg);
+}
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+}
+.stat-label {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  color: var(--fg-dim);
+  text-transform: uppercase;
+}
+.stat-value {
+  font-family: var(--font-title);
+  font-size: 16px;
+  font-weight: 700;
+}
+.stat-value.safe   { color: var(--safe); }
+.stat-value.danger { color: var(--danger); }
+.stat-sep {
+  flex: 1;
+}
+.btn-clear {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  background: var(--bg-alt);
+  color: var(--fg-dim);
+  border: var(--border-w) solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  letter-spacing: 1px;
+}
+.btn-clear:hover {
+  background: var(--fg);
+  color: var(--bg);
+}
+
+/* ---- Scan list ---- */
+.scan-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 6px 0;
+  max-height: 380px;
+}
+.scan-list::-webkit-scrollbar {
+  width: 6px;
+}
+.scan-list::-webkit-scrollbar-track {
+  background: var(--bg-alt);
+}
+.scan-list::-webkit-scrollbar-thumb {
+  background: var(--fg-dim);
+  border-radius: 3px;
+}
+
+/* ---- Empty state ---- */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 30px 14px;
+  color: var(--fg-dim);
+  text-align: center;
+}
+.ascii-art {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.3;
+  margin-bottom: 8px;
+  color: var(--fg-dim);
+}
+.empty-state p {
+  font-size: 11px;
+}
+
+/* ---- Scan entry ---- */
+.scan-entry {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 14px;
+  border-bottom: 1px solid #D5CFC4;
+  transition: background 0.1s ease;
+}
+.scan-entry:hover {
+  background: var(--bg-alt);
+}
+.scan-entry:last-child {
+  border-bottom: none;
+}
+
+/* Risk indicator */
+.risk-indicator {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: var(--border-w) solid var(--border);
+  border-radius: var(--radius);
+  font-family: var(--font-title);
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: -0.5px;
+}
+.risk-indicator.safe {
+  background: var(--safe-bg);
+  color: var(--safe);
+  border-color: var(--safe);
+}
+.risk-indicator.suspicious {
+  background: var(--warn-bg);
+  color: var(--warn);
+  border-color: var(--warn);
+}
+.risk-indicator.dangerous {
+  background: var(--danger-bg);
+  color: var(--danger);
+  border-color: var(--danger);
+  animation: pulse-danger 1.5s ease-in-out infinite;
+}
+.risk-indicator.error {
+  background: #EDE5F5;
+  color: var(--error);
+  border-color: var(--error);
+}
+
+@keyframes pulse-danger {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* Entry body */
+.scan-body {
+  flex: 1;
+  min-width: 0;
+}
+.scan-filename {
+  font-weight: 600;
+  font-size: 12px;
+  word-break: break-all;
+  line-height: 1.3;
+}
+.scan-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  margin-top: 3px;
+  font-size: 10px;
+  color: var(--fg-dim);
+}
+.scan-meta span {
+  white-space: nowrap;
+}
+.scan-tag {
+  display: inline-block;
+  padding: 1px 5px;
+  border: 1px solid var(--fg-dim);
+  border-radius: 2px;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.scan-tag.safe       { border-color: var(--safe); color: var(--safe); }
+.scan-tag.suspicious { border-color: var(--warn); color: var(--warn); }
+.scan-tag.dangerous  { border-color: var(--danger); color: var(--danger); background: var(--danger-bg); }
+
+.scan-reason {
+  margin-top: 4px;
+  font-size: 10px;
+  color: var(--danger);
+  font-style: italic;
+  line-height: 1.3;
+}
+.scan-time {
+  font-size: 10px;
+  color: var(--fg-dim);
+  white-space: nowrap;
+  margin-left: auto;
+  padding-top: 2px;
+}
+
+/* ---- Footer ---- */
+.footer {
+  padding: 6px 14px;
+  border-top: var(--border-w) solid var(--border);
+  background: var(--bg-alt);
+  font-size: 9px;
+  color: var(--fg-dim);
+  text-align: center;
+  letter-spacing: 0.5px;
+}
+.sep {
+  margin: 0 6px;
+  opacity: 0.4;
+}

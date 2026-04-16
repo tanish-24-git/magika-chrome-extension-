@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=400">
+  <title>Magika File Scanner</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+
+    <!-- Header -->
+    <header class="header">
+      <div class="header-title">
+        <span class="logo">[M]</span>
+        <h1>MAGIKA SCANNER</h1>
+      </div>
+      <p class="subtitle">LOCAL AI FILE TYPE DETECTION</p>
+    </header>
+
+    <!-- Stats bar -->
+    <div class="stats-bar">
+      <div class="stat">
+        <span class="stat-label">SCANNED</span>
+        <span class="stat-value" id="stat-total">0</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">SAFE</span>
+        <span class="stat-value safe" id="stat-safe">0</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">FLAGGED</span>
+        <span class="stat-value danger" id="stat-flagged">0</span>
+      </div>
+      <div class="stat-sep"></div>
+      <button class="btn-clear" id="btn-clear" title="Clear all scan history">[CLR]</button>
+    </div>
+
+    <!-- Scan list -->
+    <div class="scan-list" id="scan-list">
+      <div class="empty-state" id="empty-state">
+        <pre class="ascii-art">
+  +----------+
+  |  IDLE..  |
+  |  no scans|
+  |  yet     |
+  +----------+
+        </pre>
+        <p>Download a file to begin scanning.</p>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <span>Powered by Google Magika</span>
+      <span class="sep">|</span>
+      <span>All analysis is local</span>
+    </footer>
+
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>
