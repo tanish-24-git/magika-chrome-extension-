@@ -15,6 +15,9 @@ const staticFiles = [
   'popup.html',
   'popup.css',
   'popup.js',
+  'alert.html',
+  'alert.css',
+  'alert.js',
   'icons',
 ];
 

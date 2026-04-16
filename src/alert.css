@@ -1,0 +1,62 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'IBM Plex Mono', Courier, monospace;
+  background-color: #F4F0EB;
+  color: #222;
+  overflow: hidden;
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+}
+
+.overlay {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  border: 4px solid #222;
+}
+
+.overlay.dangerous {
+  background-color: #CC0000;
+  color: #F4F0EB;
+  border-color: #222;
+}
+
+.overlay.suspicious {
+  background-color: #CC6600;
+  color: #F4F0EB;
+}
+
+.scan-header {
+  font-weight: 700;
+  font-size: 14px;
+  margin-bottom: 8px;
+  border-bottom: 2px solid currentColor;
+  padding-bottom: 4px;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.file-name {
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.reason {
+  font-size: 12px;
+  line-height: 1.4;
+}

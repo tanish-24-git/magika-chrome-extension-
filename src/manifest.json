@@ -7,11 +7,13 @@
     "downloads",
     "downloads.open",
     "storage",
-    "notifications"
+    "notifications",
+    "scripting"
   ],
   "host_permissions": [
     "file:///*",
-    "https://google.github.io/*"
+    "https://google.github.io/*",
+    "<all_urls>"
   ],
   "background": {
     "service_worker": "background.js",

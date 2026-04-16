@@ -121,14 +121,59 @@ function emitStatus(filename, assessment) {
   chrome.action.setBadgeBackgroundColor({ color: uiState.color });
   if (risk === 'safe') setTimeout(() => chrome.action.setBadgeText({ text: '' }), 4000);
 
-  // Enforce interaction so the popup doesn't auto-close silently
-  chrome.notifications.create(`magika-alert-${Date.now()}`, {
-    type: 'basic',
-    iconUrl: chrome.runtime.getURL('icons/icon-128.png'),
-    title: `[${risk.toUpperCase()}] ${filename}`,
-    message: reason,
-    priority: uiState.prio,
-    requireInteraction: risk !== 'safe' // Forces the notification to stay on screen for dangerous/suspicious files
+  // Inject an organic DOM-based Toast notification directly into the active browser page
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    if (tabs[0]?.id) {
+        chrome.scripting.executeScript({
+            target: { tabId: tabs[0].id },
+            args: [risk, filename, reason],
+            func: (risk, filename, reason) => {
+                const toast = document.createElement('div');
+                
+                Object.assign(toast.style, {
+                    position: 'fixed', top: '32px', right: '32px', zIndex: '2147483647',
+                    backgroundColor: risk === 'dangerous' ? '#CC0000' : (risk === 'suspicious' ? '#CC6600' : '#F4F0EB'),
+                    color: risk === 'safe' ? '#222222' : '#FFFFFF',
+                    padding: '12px 16px', borderRadius: '4px',
+                    fontFamily: '"IBM Plex Mono", Courier, monospace', fontSize: '13px',
+                    boxShadow: '0 8px 24px rgba(0,0,0,0.3)', cursor: 'pointer',
+                    opacity: '0', transform: 'translateY(-20px)', transition: 'all 0.3s ease',
+                    maxWidth: '300px', lineHeight: '1.4', 
+                    border: '3px solid #222222'
+                });
+
+                const titleMap = {
+                    'dangerous': '[ DANGEROUS FILE ]',
+                    'suspicious': '[ SUSPICIOUS ]',
+                    'safe': '[ SCAN SAFE ]'
+                };
+
+                toast.innerHTML = `
+                    <div style="font-weight:bold;margin-bottom:6px;font-size:12px;text-transform:uppercase;border-bottom:1px solid currentColor;padding-bottom:4px;">
+                        MAGIKA: ${titleMap[risk]}
+                    </div>
+                    <div style="font-weight:bold;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${filename}</div>
+                    <div style="font-size:11px;opacity:0.9;">${reason}</div>
+                `;
+
+                document.body.appendChild(toast);
+
+                requestAnimationFrame(() => {
+                    toast.style.opacity = '1';
+                    toast.style.transform = 'translateY(0)';
+                });
+
+                const destroyToast = () => {
+                    toast.style.opacity = '0';
+                    toast.style.transform = 'translateY(-20px)';
+                    setTimeout(() => toast.remove(), 300);
+                };
+
+                toast.onclick = destroyToast;
+                setTimeout(destroyToast, 7000);
+            }
+        }).catch(err => console.debug("Magika UI injection blocked by page policy: ", err));
+    }
   });
 }
 
