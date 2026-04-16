@@ -11,7 +11,7 @@
 
 ---
 
-## 📸 Interface
+## Interface
 
 ![Magika Scanner UI](screenshot.png)
 
