@@ -21,9 +21,22 @@ const EXECUTABLE_LABELS = new Set([
 ]);
 
 const BENIGN_EXTENSIONS = new Set([
-  'jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg', 'ico', 
-  'mp3', 'mp4', 'avi', 'mkv', 'mov', 'wav', 'flac',
-  'txt', 'md', 'csv', 'json', 'xml', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'
+  // Images
+  'jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg', 'ico', 'tiff', 'raw', 'heic',
+  // Video
+  'mp4', 'avi', 'mkv', 'mov', 'wmv', 'flv', 'webm', 'm4v', 'mpeg', 'mpg',
+  // Audio
+  'mp3', 'wav', 'flac', 'aac', 'ogg', 'm4a', 'wma',
+  // Documents
+  'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'rtf', 'odt', 'ods', 'odp',
+  // Text & Data
+  'txt', 'md', 'csv', 'json', 'xml', 'yaml', 'yml', 'ini', 'log', 'conf', 'toml',
+  // Archives
+  'zip', 'rar', '7z', 'tar', 'gz', 'bz2', 'xz', 'iso',
+  // Fonts
+  'ttf', 'otf', 'woff', 'woff2',
+  // Other common innocuous types
+  'epub', 'mobi', 'torrent', 'srt', 'vtt', 'ics', 'vcf'
 ]);
 
 /**
