@@ -13,24 +13,6 @@ const scanCache = new Map();       // filePath -> scanResult
 const recentScans = [];            // last N scan results for the popup
 const MAX_RECENT = 50;
 
-// ---- Risk classification ----
-// File type labels that are commonly associated with executable or
-// potentially dangerous content. Magika detects *file type*, not malware,
-// so we flag types that warrant user caution.
-const SUSPICIOUS_LABELS = new Set([
-  'appleplist', 'batch', 'dex', 'elf', 'lnk', 'mach',
-  'macho', 'msi', 'mscompress', 'pebin', 'pem', 'pgp',
-  'php', 'powershell', 'shell', 'vba', 'javascript',
-  'java', 'javabytecode', 'wasm',
-]);
-
-const DANGEROUS_EXTENSIONS = new Set([
-  '.exe', '.bat', '.cmd', '.scr', '.pif', '.com', '.msi',
-  '.vbs', '.vbe', '.js', '.jse', '.wsf', '.wsh', '.ps1',
-  '.dll', '.sys', '.cpl', '.hta', '.inf', '.reg',
-  '.lnk', '.jar', '.dex', '.elf', '.sh', '.php',
-]);
-
 // ---- Magika Loader ----
 async function getMagika() {
   if (magikaInstance) return magikaInstance;
@@ -71,34 +53,40 @@ async function readFileAsBytes(filePath) {
   return new Uint8Array(buffer);
 }
 
-// ---- Risk assessment ----
+// ---- Risk assessment — driven entirely by Magika's model output ----
 function assessRisk(prediction, filename) {
-  const label = prediction.output?.label || prediction.dl?.label || 'unknown';
-  const score = prediction.score ?? 0;
-  const ext = (filename.match(/\.[^.]+$/) || [''])[0].toLowerCase();
+  const label = prediction.output?.label    || prediction.dl?.label || 'unknown';
+  const group = prediction.output?.group    || '';
+  const mime  = prediction.output?.mime_type || '';
+  const score = prediction.score            ?? (prediction.output?.score ?? 0);
+  const ext   = (filename.match(/\.[^.]+$/) || [''])[0].toLowerCase().replace('.', '');
 
-  let risk = 'safe';
-  let reason = '';
+  let risk   = 'safe';
+  let reason = `Magika identified this as "${label}" with ${(score * 100).toFixed(1)}% confidence.`;
 
-  if (SUSPICIOUS_LABELS.has(label)) {
-    risk = 'suspicious';
-    reason = `Detected type "${label}" is commonly associated with executable content.`;
-  }
-  if (DANGEROUS_EXTENSIONS.has(ext)) {
-    risk = 'suspicious';
-    reason = `File extension "${ext}" is commonly used by executable programs.`;
-  }
-  // If model says it's one type but extension claims another, that's a red flag
+  // --- RED FLAG: Extension Mismatch ---
+  // The Magika model tells us exactly which extensions are valid for the file type it detected.
   const expectedExts = prediction.output?.extensions || [];
-  if (expectedExts.length > 0 && ext) {
-    const cleanExt = ext.replace('.', '');
-    if (!expectedExts.includes(cleanExt) && DANGEROUS_EXTENSIONS.has(ext)) {
-      risk = 'dangerous';
-      reason = `Extension mismatch: file claims "${ext}" but Magika detected "${label}".`;
-    }
+  
+  if (expectedExts.length > 0 && ext && !expectedExts.includes(ext)) {
+    risk   = 'dangerous';
+    reason = `Extension mismatch: file claims ".${ext}" but Magika expects [${expectedExts.map(e => '.'+e).join(', ')}] based on the detected "${label}" content.`;
+    return { risk, reason, label, group, mime, score, ext };
   }
 
-  return { risk, reason, label, score, ext };
+  // --- SUSPICIOUS: Magika is not confident in its identification (<50%) ---
+  if (score < 0.5 && label !== 'unknown') {
+    risk   = 'suspicious';
+    reason = `Magika has low confidence (${(score * 100).toFixed(1)}%) identifying this as "${label}". File type could not be determined reliably.`;
+  }
+
+  // --- SUSPICIOUS: Magika could not identify the file at all ---
+  if (label === 'unknown' || label === 'undefined') {
+    risk   = 'suspicious';
+    reason = `Magika could not determine the file type. This may be an obfuscated or corrupted file.`;
+  }
+
+  return { risk, reason, label, group, mime, score, ext };
 }
 
 // ---- Badge / notification ----
