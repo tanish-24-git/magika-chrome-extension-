@@ -121,12 +121,14 @@ function emitStatus(filename, assessment) {
   chrome.action.setBadgeBackgroundColor({ color: uiState.color });
   if (risk === 'safe') setTimeout(() => chrome.action.setBadgeText({ text: '' }), 4000);
 
-  chrome.notifications.create({
+  // Enforce interaction so the popup doesn't auto-close silently
+  chrome.notifications.create(`magika-alert-${Date.now()}`, {
     type: 'basic',
-    iconUrl: 'icons/icon-128.png',
+    iconUrl: chrome.runtime.getURL('icons/icon-128.png'),
     title: `[${risk.toUpperCase()}] ${filename}`,
     message: reason,
     priority: uiState.prio,
+    requireInteraction: risk !== 'safe' // Forces the notification to stay on screen for dangerous/suspicious files
   });
 }
 
