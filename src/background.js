@@ -23,7 +23,7 @@ const EXECUTABLE_LABELS = new Set([
 const BENIGN_EXTENSIONS = new Set([
   'jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg', 'ico', 
   'mp3', 'mp4', 'avi', 'mkv', 'mov', 'wav', 'flac',
-  'txt', 'md', 'csv', 'json', 'xml'
+  'txt', 'md', 'csv', 'json', 'xml', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'
 ]);
 
 /**
