@@ -77,7 +77,7 @@ function evaluateThreat(prediction, filename) {
   if (ext && BENIGN_EXTENSIONS.has(ext) && EXECUTABLE_LABELS.has(label)) {
     return {
       risk: 'dangerous',
-      reason: `MIMICRY DETECTED: File advertises as .${ext} but contains payload type '${label}'.`,
+      reason: `Dangerous file. It claims to be a safe file type, but contains hidden executable code.`,
       label, score, ext
     };
   }
@@ -85,7 +85,7 @@ function evaluateThreat(prediction, filename) {
   if (score < 0.35 && label !== 'unknown') {
     return {
       risk: 'suspicious',
-      reason: `Low confidence threshold (${(score * 100).toFixed(1)}%) for type '${label}'.`,
+      reason: `Suspicious file. The system could not reliably verify the exact file type.`,
       label, score, ext
     };
   }
@@ -93,14 +93,14 @@ function evaluateThreat(prediction, filename) {
   if (label === 'unknown' || label === 'undefined') {
     return {
       risk: 'suspicious',
-      reason: `Anomaly: Model failed to converge on a known file signature.`,
+      reason: `Unknown file. The contents are unrecognized or potentially corrupted.`,
       label, score, ext
     };
   }
 
   return {
     risk: 'safe',
-    reason: `Inference converged on '${label}' with ${(score * 100).toFixed(1)}% confidence.`,
+    reason: `Safe file. The contents match the expected file type.`,
     label, score, ext
   };
 }
