@@ -53,40 +53,56 @@ async function readFileAsBytes(filePath) {
   return new Uint8Array(buffer);
 }
 
-// ---- Risk assessment — driven entirely by Magika's model output ----
+// ---- Risk assessment ----
+// Note: The JavaScript port of Magika only returns `label` and `is_text`.
+// It does not return `extensions`, `group`, or `mime_type` like the Python version,
+// so we must do the mapping ourselves to detect mismatches.
+
+// File types that represent executable, active, or scripted content.
+const EXECUTABLE_LABELS = new Set([
+  'pebin', 'elf', 'macho', 'dex', 'java', 'javabytecode', 'javascript', 
+  'python', 'php', 'ruby', 'shell', 'batch', 'powershell', 'vba', 'wasm',
+  'msi', 'cab', 'apk', 'dmg', 'sh'
+]);
+
+// Extensions that advertise entirely safe, non-executable formats (images, audio, simple docs).
+// If an executable label is hiding behind one of these, it's highly dangerous.
+const BENIGN_EXTENSIONS = new Set([
+  'jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg', 'ico', 
+  'mp3', 'mp4', 'avi', 'mkv', 'mov', 'wav', 'flac',
+  'txt', 'md', 'csv', 'json', 'xml'
+]);
+
 function assessRisk(prediction, filename) {
   const label = prediction.output?.label    || prediction.dl?.label || 'unknown';
-  const group = prediction.output?.group    || '';
-  const mime  = prediction.output?.mime_type || '';
   const score = prediction.score            ?? (prediction.output?.score ?? 0);
   const ext   = (filename.match(/\.[^.]+$/) || [''])[0].toLowerCase().replace('.', '');
 
   let risk   = 'safe';
   let reason = `Magika identified this as "${label}" with ${(score * 100).toFixed(1)}% confidence.`;
 
-  // --- RED FLAG: Extension Mismatch ---
-  // The Magika model tells us exactly which extensions are valid for the file type it detected.
-  const expectedExts = prediction.output?.extensions || [];
-  
-  if (expectedExts.length > 0 && ext && !expectedExts.includes(ext)) {
+  // --- RED FLAG: Disguise (Content Mismatch) ---
+  // If the file is pretending to be a simple image or text file, but is actually an executable/script!
+  if (ext && BENIGN_EXTENSIONS.has(ext) && EXECUTABLE_LABELS.has(label)) {
     risk   = 'dangerous';
-    reason = `Extension mismatch: file claims ".${ext}" but Magika expects [${expectedExts.map(e => '.'+e).join(', ')}] based on the detected "${label}" content.`;
-    return { risk, reason, label, group, mime, score, ext };
+    reason = `DANGEROUS MISMATCH: File claims to be ".${ext}" but Magika detected active code ("${label}"). This is a severe threat indicator.`;
+    return { risk, reason, label, score, ext };
   }
 
-  // --- SUSPICIOUS: Magika is not confident in its identification (<50%) ---
-  if (score < 0.5 && label !== 'unknown') {
+  // --- SUSPICIOUS: Low confidence identification (< 35%) ---
+  // If Magika themselves barely know what it is.
+  if (score < 0.35 && label !== 'unknown') {
     risk   = 'suspicious';
-    reason = `Magika has low confidence (${(score * 100).toFixed(1)}%) identifying this as "${label}". File type could not be determined reliably.`;
+    reason = `Magika has very low confidence (${(score * 100).toFixed(1)}%) identifying this as "${label}".`;
   }
 
-  // --- SUSPICIOUS: Magika could not identify the file at all ---
+  // --- SUSPICIOUS: Unknown / Obfuscated ---
   if (label === 'unknown' || label === 'undefined') {
     risk   = 'suspicious';
-    reason = `Magika could not determine the file type. This may be an obfuscated or corrupted file.`;
+    reason = `Magika could not identify the file type (0% confidence). This might be corrupted or obfuscated.`;
   }
 
-  return { risk, reason, label, group, mime, score, ext };
+  return { risk, reason, label, score, ext };
 }
 
 // ---- Badge / notification ----
@@ -106,14 +122,13 @@ function setBadge(risk) {
 }
 
 function notify(title, message, risk) {
-  // Only show system notification for suspicious / dangerous
-  if (risk === 'safe') return;
+  // Show system notification for all scans (safe, suspicious, dangerous)
   chrome.notifications.create({
     type: 'basic',
     iconUrl: 'icons/icon-128.png',
     title,
     message,
-    priority: risk === 'dangerous' ? 2 : 1,
+    priority: risk === 'dangerous' ? 2 : (risk === 'suspicious' ? 1 : 0),
   });
 }
 
@@ -150,12 +165,10 @@ async function scanFile(downloadItem) {
       timestamp: Date.now(),
       elapsed: `${elapsed}ms`,
       label: assessment.label,
-      mime: prediction.output?.mime_type || 'unknown',
       score: assessment.score,
       risk: assessment.risk,
       reason: assessment.reason,
       description: prediction.output?.description || '',
-      group: prediction.output?.group || '',
     };
 
     // Cache + recent list
@@ -168,13 +181,11 @@ async function scanFile(downloadItem) {
 
     // Badge + notification
     setBadge(assessment.risk);
-    if (assessment.risk !== 'safe') {
-      notify(
-        `[${assessment.risk.toUpperCase()}] ${fileName}`,
-        assessment.reason,
-        assessment.risk,
-      );
-    }
+    notify(
+      `[${assessment.risk.toUpperCase()}] ${fileName}`,
+      assessment.reason,
+      assessment.risk,
+    );
 
     console.log(`[magika] Done: ${fileName} → ${assessment.label} (${assessment.risk}) in ${elapsed}ms`);
     return scanResult;
